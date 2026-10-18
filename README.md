@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Your budget, in your pocket.</b><br>
-  A simple expense tracker with monthly budgets, summaries and sync between phone and PC.
+  A simple expense tracker with monthly budgets, smart shortcuts and sync between phone and PC.
 </p>
 
 <p align="center">
@@ -28,7 +28,7 @@
 
 ---
 
-PocketMoney lets you set a monthly budget, log food, parking, uni and other spending in a few taps, and see where your money went. It runs in the browser, installs like an app, and can sync between your phone and PC with a free account.
+PocketMoney lets you set a monthly budget, log food, parking, uni and other spending in a few taps, and see where your money went. It runs in the browser, installs like an app, works offline, and can sync between your phone and PC with a free account.
 
 <p align="center">
   <img src="docs/screenshot-dashboard.png" alt="Dashboard" width="49%">
@@ -37,13 +37,37 @@ PocketMoney lets you set a monthly budget, log food, parking, uni and other spen
 
 ## Features
 
-- **Monthly budget** with spent, remaining balance and a daily safe-to-spend figure
-- **Quick add** buttons and saved quick options for things you buy often
-- **Monthly history and summary** with a category breakdown chart
-- **Make it yours**: name, profile picture, accent colour and wallpaper
-- **Backups**: export and import JSON, export CSV
-- **Cloud sync** between devices (optional, free account)
-- **Installable and offline**: works like a normal app
+**Budgeting**
+- Monthly budget with spent, remaining balance and a daily safe-to-spend figure
+- Daily insight line showing days left, average spend, what you spent today and your top category
+- Alerts when you hit 85% of your budget and when you go over
+- Add extra money to the month when your budget changes
+- Automatic monthly reset, with past months kept in the archive
+
+**Fast logging**
+- Quick add buttons and saved quick options for things you buy often
+- Item suggestions from your history, with the amount filled in from last time
+- Opens on the category you used last
+- Enter to add, undo on delete, and a repeat button for recurring buys
+
+**Categories**
+- Choose which categories appear on your bar (Food, Parking, Uni, Stuff and more)
+- Add presets like Utilities, Transport, Fun or Rent, or create your own with an emoji
+- Hide a category and bring it back later without losing its history
+
+**History and summary**
+- Search and filter your transactions
+- Monthly summary with a category breakdown chart
+- Browse past months from the archive
+
+**Make it yours**
+- Name, profile picture, accent colour and wallpaper
+- Currency setting
+
+**Your data**
+- Backups: export and import JSON, export CSV
+- Cloud sync between devices (optional, free account)
+- Installable and offline: works like a normal app
 
 ## Install
 
@@ -56,6 +80,8 @@ PocketMoney lets you set a monthly budget, log food, parking, uni and other spen
 
 Without an account, your data stays in your own browser only. To sync, go to *Settings > Data Backup > Cloud Sync*, create an account and sign in with the same details on every device. Each account can only see its own data. See [PRIVACY.md](PRIVACY.md).
 
+**Moving existing data:** use *Export JSON* in your old app, then sign in on the new one and use *Import JSON*. Sign in first on the device that has your real data, because a device that signs in later takes the cloud copy.
+
 ## Run your own copy
 
 1. Fork this repo and turn on GitHub Pages (*Settings > Pages > Deploy from branch `main`, `/ (root)`*).
@@ -63,6 +89,12 @@ Without an account, your data stays in your own browser only. To sync, go to *Se
 3. Never put a `service_role` key in this repo.
 
 Leave `config.js` empty to run without cloud sync.
+
+**Updating:** replace `index.html` and keep your `config.js`. The app caches itself for offline use, so reload twice to see a new version.
+
+## Tech
+
+A single `index.html` with no build step, plus a small service worker and web manifest for offline use and installing. Cloud sync uses Supabase when configured.
 
 ## License
 

@@ -184,10 +184,10 @@
 
                         <!-- General Inputs -->
                         <div id="generalInputSection" class="space-y-4">
-                            <input type="text" id="expenseName" maxlength="60" placeholder="What did you buy? (e.g. Nasi Lemak, Books)" class="w-full bg-darkgrey-800 border border-darkgrey-600 rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-orange-500 shadow-inner">
+                            <input type="text" id="expenseName" list="itemSuggest" autocomplete="off" maxlength="60" placeholder="What did you buy? (e.g. Nasi Lemak, Books)" class="w-full bg-darkgrey-800 border border-darkgrey-600 rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-orange-500 shadow-inner">
                             
                             <div class="space-y-2">
-                                <input type="number" step="0.10" id="expenseAmount" placeholder="Amount in RM (e.g. 8.50)" class="w-full bg-darkgrey-800 border border-darkgrey-600 rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-orange-500 shadow-inner">
+                                <datalist id="itemSuggest"></datalist><input type="number" step="0.10" id="expenseAmount" placeholder="Amount in RM (e.g. 8.50)" class="w-full bg-darkgrey-800 border border-darkgrey-600 rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-orange-500 shadow-inner">
                                 
                                 <!-- Quick Amount Buttons QoL -->
                                 <div class="flex flex-wrap gap-2 items-center justify-between pt-1">
@@ -928,7 +928,7 @@
             { id: 'Phone', label: 'Phone & Data', emoji: '📱' }, { id: 'Health', label: 'Health', emoji: '💊' },
             { id: 'Fun', label: 'Fun', emoji: '🎮' }, { id: 'Subscriptions', label: 'Subscriptions', emoji: '🔁' },
             { id: 'Gifts', label: 'Gifts', emoji: '🎁' }, { id: 'Rent', label: 'Rent', emoji: '🏠' },
-            { id: 'Fuel', label: 'Fuel', emoji: '⛽' }, { id: 'Savings', label: 'Savings', emoji: '🏦' },
+            { id: 'Fuel', label: 'Fuel', emoji: '⛽' },
             { id: 'Clothes', label: 'Clothes', emoji: '👕' }, { id: 'Coffee', label: 'Coffee', emoji: '☕' }
         ];
         const CAT_COLORS = ['#f97316', '#3b82f6', '#10b981', '#ec4899', '#eab308', '#8b5cf6', '#06b6d4', '#ef4444', '#84cc16', '#a16207', '#64748b', '#d946ef'];
@@ -953,6 +953,8 @@
         function ensureCategories() {
             if (!Array.isArray(appData.categories)) appData.categories = BASE_CATS.map(c => Object.assign({ active: true }, c));
             BASE_CATS.forEach(c => { if (!appData.categories.some(x => x.id === c.id)) appData.categories.push(Object.assign({ active: true }, c)); });
+            // Savings option was removed: drop a leftover saved copy unless transactions still use it
+            appData.categories = appData.categories.filter(c => c.id !== 'Savings' || c.active || categoryUsed('Savings'));
             if (!appData.categories.some(c => c.active)) appData.categories[0].active = true;
             appData.categories.forEach(c => { if (!c.color && BASE_COLORS[c.id]) c.color = BASE_COLORS[c.id]; });
             appData.categories.forEach(c => { if (!c.color) c.color = nextCatColor(appData.categories.map(x => x.color).filter(Boolean)); });
@@ -1050,7 +1052,7 @@
         }
 
         function selectCategory(cat) {
-            selectedCategory = cat;
+            selectedCategory = cat; try { store.setItem('pm_lastcat', cat); } catch (e) {}
             renderCategoryBar();
 
             const genSec = document.getElementById('generalInputSection');
@@ -1283,6 +1285,15 @@
         }
 
         let _lastRaw = null;
+        let _suggestMap = {};
+        function refreshSuggest() {
+            const all = [...appData.transactions];
+            Object.values(appData.archives || {}).forEach(a => (a.transactions || []).forEach(t => all.push(t)));
+            _suggestMap = {};
+            all.forEach(t => { if (t.category !== 'Parking' && t.name && t.amount > 0) { const k = t.name.toLowerCase(); if (!(k in _suggestMap)) _suggestMap[k] = { name: t.name, amount: t.amount, n: 0 }; _suggestMap[k].n++; } });
+            const dl = document.getElementById('itemSuggest'); if (!dl) return;
+            dl.innerHTML = Object.values(_suggestMap).sort((x, y) => y.n - x.n).slice(0, 80).map(v => `<option value="${escapeHtml(v.name)}"></option>`).join('');
+        }
         function updateUI() {
             const cur = appData.profile.currency || "RM";
             const totalBudget = appData.monthlyBudget;
@@ -1301,8 +1312,13 @@
             addedEl.textContent = added > 0 ? `includes +${cur} ${added.toFixed(2)} added` : '';
             addedEl.classList.toggle('hidden', !(added > 0));
             const now = new Date(), daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), daysLeft = daysInMonth - now.getDate() + 1;
+            const todayStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+            const todaySpent = appData.transactions.filter(t => String(t.date).startsWith(todayStr)).reduce((acc, t) => acc + t.amount, 0);
+            const byCat = {}; appData.transactions.forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
+            const top = Object.entries(byCat).sort((x, y) => y[1] - x[1])[0];
+            refreshSuggest();
             document.getElementById('dailyInsight').textContent = remaining >= 0
-                ? `💡 ${daysLeft} day${daysLeft > 1 ? 's' : ''} left · safe to spend ${cur} ${(remaining / daysLeft).toFixed(2)}/day · avg spent ${cur} ${(totalSpent / now.getDate()).toFixed(2)}/day`
+                ? `💡 ${daysLeft} day${daysLeft > 1 ? 's' : ''} left · safe to spend ${cur} ${(remaining / daysLeft).toFixed(2)}/day · avg spent ${cur} ${(totalSpent / now.getDate()).toFixed(2)}/day · today ${cur} ${todaySpent.toFixed(2)}` + (top ? ` · top: ${catEmoji(top[0])} ${catLabel(top[0])}` : '')
                 : `⚠️ Over budget by ${cur} ${(-remaining).toFixed(2)}`;
             const raw = available > 0 ? (totalSpent / available) * 100 : 0;
             if (_lastRaw !== null) {
@@ -1527,6 +1543,8 @@
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
+        document.getElementById('expenseName').addEventListener('change', e => { const m = _suggestMap[e.target.value.trim().toLowerCase()], amt = document.getElementById('expenseAmount'); if (m && !amt.value) { amt.value = m.amount.toFixed(2); amt.focus(); amt.select(); } });
+        try { const lc = store.getItem('pm_lastcat'); ensureCategories(); if (lc && lc !== selectedCategory && activeCats().some(c => c.id === lc)) selectCategory(lc); } catch (e) {}
         ['expenseName','expenseAmount','parkingOutdoorAmount'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') addExpense(); }));
         document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSetBudgetModal(); closeAddMoneyModal(); closeCatModal(); closeEdit(); resolveConfirm(false); } });
         ['setBudgetModal', 'addMoneyModal', 'catModal', 'editModal', 'confirmModal'].forEach(id => { const m = document.getElementById(id); m.addEventListener('click', e => { if (e.target === m) { id === 'confirmModal' ? resolveConfirm(false) : m.classList.add('hidden'); } }); });
