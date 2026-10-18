@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Your budget, in your pocket.</b><br>
-  Set a monthly budget, log spending in a few taps, and see where your money went.
+  A simple expense tracker with monthly budgets, summaries and sync between phone and PC.
 </p>
 
 <p align="center">
@@ -19,63 +19,50 @@
 
 <p align="center">
   <a href="https://jeffyboii.github.io/PocketMoney-Tracker/"><b>Open the app</b></a> ·
-  <a href="#get-started">Get started</a> ·
+  <a href="#install">Install</a> ·
   <a href="#features">Features</a> ·
-  <a href="docs/USER-GUIDE.md">User guide</a> ·
-  <a href="docs/CLOUD-SYNC.md">Cloud sync</a> ·
-  <a href="PRIVACY.md">Privacy</a>
+  <a href="#cloud-sync">Cloud sync</a> ·
+  <a href="PRIVACY.md">Privacy</a> ·
+  <a href="#run-your-own-copy">Run your own</a>
 </p>
 
 ---
+
+PocketMoney lets you set a monthly budget, log food, parking, uni and other spending in a few taps, and see where your money went. It runs in the browser, installs like an app, and can sync between your phone and PC with a free account.
 
 <p align="center">
   <img src="docs/screenshot-dashboard.png" alt="Dashboard" width="49%">
   <img src="docs/screenshot-summary.png" alt="Monthly summary" width="49%">
 </p>
 
-## Get started
+## Features
 
-1. **Open** the [app](https://jeffyboii.github.io/PocketMoney-Tracker/) in any browser.
-2. **Install** it so it works like a normal app and offline:
+- **Monthly budget** with spent, remaining balance and a daily safe-to-spend figure
+- **Quick add** buttons and saved quick options for things you buy often
+- **Monthly history and summary** with a category breakdown chart
+- **Make it yours**: name, profile picture, accent colour and wallpaper
+- **Backups**: export and import JSON, export CSV
+- **Cloud sync** between devices (optional, free account)
+- **Installable and offline**: works like a normal app
+
+## Install
 
 | Device | How |
 |---|---|
-| Phone | Browser menu > *Add to Home Screen* (iPhone: Safari > Share > *Add to Home Screen*) |
-| PC | In Chrome, Edge or Brave, click the install icon in the address bar |
+| **Phone** | Open the link, then browser menu > *Add to Home Screen* (iPhone: Safari > Share > *Add to Home Screen*) |
+| **PC** | Open the link in Chrome, Edge or Brave and click the install icon in the address bar |
 
-3. Tap **Set Budget**, then start logging. The [user guide](docs/USER-GUIDE.md) covers the rest.
+## Cloud sync
 
-No account is needed. Your data stays in your browser unless you turn on [cloud sync](docs/CLOUD-SYNC.md).
-
-## Features
-
-| | |
-|---|---|
-| 💰 **Budget** | Remaining balance, safe-to-spend per day, and alerts at 85% and when over |
-| ⚡ **Fast logging** | Quick options, item suggestions that fill in the amount, last category remembered |
-| 🗂️ **Categories** | Show, hide or create your own, with emoji and colours |
-| 📊 **History** | Monthly archive with a category breakdown chart, plus search and filters |
-| ↩️ **Safety nets** | Undo on delete, repeat buttons, JSON and CSV backups |
-| 🎨 **Your style** | Name, picture, accent colour, currency and wallpaper |
-| ☁️ **Sync** | Optional, free, between phone and PC |
-| 📴 **Offline** | Installable and works without internet |
-
-## Docs
-
-- [User guide](docs/USER-GUIDE.md): how to use every part of the app
-- [Cloud sync setup](docs/CLOUD-SYNC.md): Supabase, hosting, moving data, troubleshooting
-- [Changelog](docs/CHANGELOG.md): what's new
-- [Privacy](PRIVACY.md): what is and isn't stored
+Without an account, your data stays in your own browser only. To sync, go to *Settings > Data Backup > Cloud Sync*, create an account and sign in with the same details on every device. Each account can only see its own data. See [PRIVACY.md](PRIVACY.md).
 
 ## Run your own copy
 
 1. Fork this repo and turn on GitHub Pages (*Settings > Pages > Deploy from branch `main`, `/ (root)`*).
-2. Optional: set up [cloud sync](docs/CLOUD-SYNC.md) and put your URL and **anon** key in `config.js`.
+2. For cloud sync, create a free [Supabase](https://supabase.com) project, run [`supabase-setup.sql`](supabase-setup.sql) in its SQL Editor, then copy your project URL and **anon** key into `config.js` (see [`config.example.js`](config.example.js)).
 3. Never put a `service_role` key in this repo.
 
-## Built with
-
-A single `index.html` with no build step, plus a service worker and web manifest. Charts use Chart.js, and cloud sync uses Supabase when configured.
+Leave `config.js` empty to run without cloud sync.
 
 ## License
 
