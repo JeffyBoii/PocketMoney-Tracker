@@ -8,6 +8,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Added
 - Nothing yet. Ideas and requests are welcome in the [issues](../../issues).
 
+## [1.1.0] - 2026-10-19
+
+### Added
+- **Two parking modes**: **APU Campus** (fixed RM5.60 fee) and **General Parking** (enter your own cost). PocketMoney remembers the mode you used last.
+- **Conflict merging** for cloud sync. If you changed data on two devices before they synced, both sets of changes are now merged instead of one overwriting the other.
+
+### Changed
+- Parking entries are now named **APU Campus Parking** and **General Parking**. Existing "Indoor" and "Outdoor" parking entries are renamed automatically.
+- **Reset all data** now clears your cloud copy too, so your other devices reset along with this one.
+- Cloud sync now checks a small revision number first and only downloads your full data when something has changed, which uses less data.
+
+### Fixed
+- Signing into a different account no longer overwrites that account's cloud data with the data stored on the device.
+- Opening PocketMoney on an old device in a new month no longer overwrites newer cloud data with outdated data.
+- The automatic monthly rollover is no longer treated as a manual edit when syncing.
+
 ## [1.0.0] - 2026-10-18
 
 First public release.
@@ -27,5 +43,6 @@ First public release.
 - Setup files for running your own copy: `config.example.js` and `supabase-setup.sql`.
 - [Privacy policy](PRIVACY.md) and [MIT license](LICENSE).
 
-[Unreleased]: ../../compare/v1.0.0...HEAD
+[Unreleased]: ../../compare/v1.1.0...HEAD
+[1.1.0]: ../../releases/tag/v1.1.0
 [1.0.0]: ../../releases/tag/v1.0.0
