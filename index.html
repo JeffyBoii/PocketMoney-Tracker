@@ -202,23 +202,24 @@
                             </div>
                         </div>
 
-                        <!-- Parking Section (Campus = fixed fee, General = custom cost) -->
+                        <!-- Parking Section (APU Indoor = fixed fee; APU Outdoor and General = custom cost) -->
                         <div id="parkingConfigSection" class="space-y-4 hidden bg-darkgrey-800 p-4 rounded-xl border border-darkgrey-600">
                             <div class="flex flex-wrap gap-2 justify-between items-center text-xs">
                                 <span class="text-slate-300 font-semibold">Parking Mode:</span>
                                 <div class="flex flex-wrap gap-1">
-                                    <button type="button" onclick="setParkingType('Campus')" id="parkTypeCampus" class="bg-orange-500 text-darkgrey-900 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm">APU Campus 🎓 (Fixed RM5.60)</button>
-                                    <button type="button" onclick="setParkingType('General')" id="parkTypeGeneral" class="bg-darkgrey-700 text-slate-300 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm">General Parking 🚗 (Custom)</button>
+                                    <button type="button" onclick="setParkingType('Indoor')" id="parkTypeIndoor" class="bg-orange-500 text-darkgrey-900 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm">APU Indoor 🏢 (RM5.60)</button>
+                                    <button type="button" onclick="setParkingType('Outdoor')" id="parkTypeOutdoor" class="bg-darkgrey-700 text-slate-300 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm">APU Outdoor 🌳 (Custom)</button>
+                                    <button type="button" onclick="setParkingType('General')" id="parkTypeGeneral" class="bg-darkgrey-700 text-slate-300 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm">General 🚗 (Custom)</button>
                                 </div>
                             </div>
 
                             <div id="parkingGeneralBox" class="space-y-2 hidden">
-                                <label class="block text-[11px] text-slate-400 uppercase font-semibold">Enter Parking Cost (RM)</label>
+                                <label id="parkingCostLabel" class="block text-[11px] text-slate-400 uppercase font-semibold">Enter Parking Cost (RM)</label>
                                 <input type="number" step="0.10" id="parkingGeneralAmount" placeholder="e.g. 4.00" class="w-full bg-darkgrey-900 border border-darkgrey-600 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
                             </div>
 
                             <div id="parkingCampusDisplayBox" class="bg-darkgrey-900 p-3 rounded-xl flex justify-between items-center text-xs border border-darkgrey-600">
-                                <span class="text-slate-400">APU Campus Parking Fee:</span>
+                                <span class="text-slate-400">APU Indoor Parking Fee:</span>
                                 <span class="text-base font-bold text-orange-500">RM 5.60</span>
                             </div>
                         </div>
@@ -529,7 +530,7 @@
                 <button type="button" onclick="bumpAddMoney(100)" style="color:#6ee7b7" class="flex-1 bg-darkgrey-700 hover:bg-darkgrey-600 font-bold py-2 rounded-xl text-xs cursor-pointer">+100</button>
             </div>
             <input type="text" id="addMoneyNote" maxlength="40" placeholder="Note (optional), e.g. Allowance" class="w-full bg-darkgrey-900 border border-darkgrey-600 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 shadow-inner">
-            <div id="addMoneyList" class="space-y-2 max-h-44 overflow-y-auto pb-1"></div>
+            <div id="addMoneyList" class="space-y-2 pb-1"></div>
             <div class="flex space-x-2 pt-2">
                 <button type="button" onclick="closeAddMoneyModal()" class="w-1/2 bg-darkgrey-700 hover:bg-darkgrey-600 text-slate-300 font-bold py-2.5 rounded-xl text-xs cursor-pointer">Cancel ❌</button>
                 <button type="button" onclick="saveAddMoney()" style="background:#10b981;color:#0c0a0b" class="w-1/2 font-extrabold py-2.5 rounded-xl text-xs cursor-pointer shadow-md">Add Money ✅</button>
@@ -618,7 +619,7 @@
         let currentNavTab = 'expenses';
         let viewingArchiveMonth = appData.currentMonth;
         let selectedCategory = 'Food';
-        let parkingType = 'Campus'; // 'Campus' (APU, fixed fee) or 'General' (custom cost)
+        let parkingType = 'Indoor'; // 'Indoor' = APU students, fixed fee | 'Outdoor' = APU students, custom cost | 'General' = non-APU, custom cost
         const CAMPUS_PARKING_FEE = 5.60;
         let pieChartInstance = null;
 
@@ -656,7 +657,7 @@
         }
         function migrateParkingNames(d) {
             const fix = t => { if (t && t.category === 'Parking' && typeof t.name === 'string') {
-                if (/^Indoor Parking/.test(t.name)) t.name = 'APU Campus Parking 🎓 (Fixed RM5.60)';
+                if (/^(Indoor Parking|APU Campus Parking)/.test(t.name)) t.name = 'APU Indoor Parking 🏢 (Fixed RM5.60)';
                 else if (/^Outdoor Parking/.test(t.name)) t.name = 'General Parking 🚗';
             } };
             (d.transactions || []).forEach(fix);
@@ -1074,7 +1075,7 @@
             if (cat === 'Parking') {
                 genSec.classList.add('hidden');
                 parkSec.classList.remove('hidden');
-                setParkingType(store.getItem('pm_parkmode') === 'General' ? 'General' : 'Campus');
+                setParkingType(store.getItem('pm_parkmode'));
             } else {
                 genSec.classList.remove('hidden');
                 parkSec.classList.add('hidden');
@@ -1082,15 +1083,16 @@
         }
 
         function setParkingType(type) {
-            parkingType = type === 'General' ? 'General' : 'Campus';
+            // 'Campus' was the old saved value for the APU fixed-fee mode
+            parkingType = type === 'Outdoor' ? 'Outdoor' : type === 'General' ? 'General' : 'Indoor';
             try { store.setItem('pm_parkmode', parkingType); } catch (e) {}
             const on = "bg-orange-500 text-darkgrey-900 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm";
             const off = "bg-darkgrey-700 text-slate-300 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm";
-            const campus = parkingType === 'Campus';
-            document.getElementById('parkTypeCampus').className = campus ? on : off;
-            document.getElementById('parkTypeGeneral').className = campus ? off : on;
-            document.getElementById('parkingGeneralBox').classList.toggle('hidden', campus);
-            document.getElementById('parkingCampusDisplayBox').classList.toggle('hidden', !campus);
+            ['Indoor', 'Outdoor', 'General'].forEach(m => { document.getElementById('parkType' + m).className = parkingType === m ? on : off; });
+            const fixed = parkingType === 'Indoor';
+            document.getElementById('parkingGeneralBox').classList.toggle('hidden', fixed);
+            document.getElementById('parkingCampusDisplayBox').classList.toggle('hidden', !fixed);
+            document.getElementById('parkingCostLabel').textContent = parkingType === 'Outdoor' ? 'Enter APU Outdoor Parking Cost (RM)' : 'Enter Parking Cost (RM)';
         }
 
         function renderQuickOptions() {
@@ -1105,7 +1107,7 @@
             const a = document.getElementById('expenseAmount'); a.value = Number(q.amount).toFixed(2); a.focus();
         }
         function saveQuickOption() {
-            if (selectedCategory === 'Parking') return toast('Parking has its own APU Campus / General modes.');
+            if (selectedCategory === 'Parking') return toast('Parking has its own APU Indoor / APU Outdoor / General modes.');
             const name = document.getElementById('expenseName').value.trim(), amount = parseFloat(document.getElementById('expenseAmount').value);
             if (!name || isNaN(amount) || amount <= 0) return toast('Type an item and amount first, then save it.');
             if (appData.quickOptions.some(q => q.name === name && q.amount === amount && q.category === selectedCategory)) return toast('That quick option already exists.');
@@ -1128,23 +1130,33 @@
             return (Array.isArray(appData.topups) ? appData.topups : [])
                 .filter(t => t.month === appData.currentMonth).reduce((a, t) => a + t.amount, 0);
         }
+        let addMoneyShowAll = false;
+        const ADD_MONEY_PREVIEW = 4;
+        function toggleAddMoneyAll() { addMoneyShowAll = !addMoneyShowAll; renderAddMoneyList(); }
         function renderAddMoneyList() {
             const cur = appData.profile.currency || "RM";
             const box = document.getElementById('addMoneyList');
             const items = (Array.isArray(appData.topups) ? appData.topups : []).filter(t => t.month === appData.currentMonth);
-            if (!items.length) { box.innerHTML = ''; return; }
-            box.innerHTML = '<p class="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-1">Added this month</p>' + items.map(t =>
+            if (!items.length) { box.innerHTML = ''; box.style.maxHeight = ''; box.style.overflowY = ''; return; }
+            const shown = addMoneyShowAll ? items : items.slice(0, ADD_MONEY_PREVIEW);
+            const hidden = items.length - ADD_MONEY_PREVIEW;
+            // Collapsed = only 4 rows so no inner scrolling needed; expanded = scroll inside a capped box.
+            box.style.maxHeight = addMoneyShowAll ? '14rem' : '';
+            box.style.overflowY = addMoneyShowAll ? 'auto' : '';
+            box.innerHTML = '<p class="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-1">Added this month' + (items.length > ADD_MONEY_PREVIEW ? ' (' + items.length + ')' : '') + '</p>' + shown.map(t =>
                 `<div class="flex items-center justify-between bg-darkgrey-900 border border-darkgrey-600 rounded-xl px-3 py-2.5">
                     <div class="min-w-0"><div class="text-xs font-bold truncate" style="color:#6ee7b7">+${cur} ${t.amount.toFixed(2)}</div>
                     <div class="text-[11px] text-slate-400 truncate">${escapeHtml(t.note || 'Added money')} · ${escapeHtml(t.date || '')}</div></div>
                     <button type="button" onclick="deleteAddMoney(${t.id})" class="text-slate-400 hover:text-red-400 text-xs px-2 cursor-pointer" title="Remove">✕</button>
-                </div>`).join('');
+                </div>`).join('')
+                + (hidden > 0 ? `<button type="button" onclick="toggleAddMoneyAll()" class="w-full text-center text-[11px] font-bold text-slate-300 hover:text-white bg-darkgrey-700 hover:bg-darkgrey-600 rounded-xl py-2 cursor-pointer">${addMoneyShowAll ? 'Show less ▲' : 'Show ' + hidden + ' more ▼'}</button>` : '');
         }
         function deleteAddMoney(id) {
             appData.topups = (appData.topups || []).filter(t => t.id !== id);
             saveData(); renderAddMoneyList();
         }
         function openAddMoneyModal() {
+            addMoneyShowAll = false;
             document.getElementById('addMoneyAmount').value = '';
             document.getElementById('addMoneyNote').value = '';
             renderAddMoneyList();
@@ -1196,15 +1208,15 @@
             const cur = appData.profile.currency || "RM";
             if (selectedCategory === 'Parking') {
                 let totalFee = CAMPUS_PARKING_FEE;
-                let desc = `APU Campus Parking 🎓 (Fixed ${cur}${CAMPUS_PARKING_FEE.toFixed(2)})`;
+                let desc = `APU Indoor Parking 🏢 (Fixed ${cur}${CAMPUS_PARKING_FEE.toFixed(2)})`;
 
-                if (parkingType === 'General') {
+                if (parkingType !== 'Indoor') {
                     totalFee = parseFloat(document.getElementById('parkingGeneralAmount').value);
                     if (isNaN(totalFee) || totalFee <= 0) {
                         toast(`Please enter a valid parking cost in ${cur}.`);
                         return;
                     }
-                    desc = "General Parking 🚗";
+                    desc = parkingType === 'Outdoor' ? "APU Outdoor Parking 🌳" : "General Parking 🚗";
                 }
 
                 appData.transactions.unshift({
@@ -1215,7 +1227,7 @@
                     date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
                 });
 
-                if (parkingType === 'General') {
+                if (parkingType !== 'Indoor') {
                     document.getElementById('parkingGeneralAmount').value = '';
                 }
             } else {

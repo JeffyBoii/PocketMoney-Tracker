@@ -8,6 +8,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Added
 - Nothing yet. Ideas and requests are welcome in the [issues](../../issues).
 
+## [1.2.0] - 2026-10-28
+
+### Changed
+- Parking now has **three modes**: **APU Indoor** (fixed RM5.60) and **APU Outdoor** (enter your own cost) for APU students, and **General Parking** (enter your own cost) for everyone else. PocketMoney remembers the mode you used last.
+- Indoor parking entries from older versions are renamed automatically to **APU Indoor Parking**.
+- The **Add money** window now shows only your 4 latest top-ups, so it is less cluttered on phones. Tap **Show more** to see the rest and **Show less** to collapse the list again.
+- The "Added this month" heading now shows how many top-ups you have, for example "Added this month (10)".
+
 ## [1.1.0] - 2026-10-19
 
 ### Added
@@ -43,6 +51,7 @@ First public release.
 - Setup files for running your own copy: `config.example.js` and `supabase-setup.sql`.
 - [Privacy policy](PRIVACY.md) and [MIT license](LICENSE).
 
-[Unreleased]: ../../compare/v1.1.0...HEAD
+[Unreleased]: ../../compare/v1.2.0...HEAD
+[1.2.0]: ../../compare/v1.1.0...v1.2.0
 [1.1.0]: ../../releases/tag/v1.1.0
 [1.0.0]: ../../releases/tag/v1.0.0
