@@ -202,19 +202,34 @@
                             </div>
                         </div>
 
-                        <!-- Parking Section (APU Indoor = fixed fee; APU Outdoor and General = custom cost) -->
+                        <!-- Parking Section (APU Indoor = fixed fee; APU Outdoor = Zone B hourly rate; General = custom cost) -->
                         <div id="parkingConfigSection" class="space-y-4 hidden bg-darkgrey-800 p-4 rounded-xl border border-darkgrey-600">
                             <div class="flex flex-wrap gap-2 justify-between items-center text-xs">
                                 <span class="text-slate-300 font-semibold">Parking Mode:</span>
                                 <div class="flex flex-wrap gap-1">
                                     <button type="button" onclick="setParkingType('Indoor')" id="parkTypeIndoor" class="bg-orange-500 text-darkgrey-900 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm">APU Indoor 🏢 (RM5.60)</button>
-                                    <button type="button" onclick="setParkingType('Outdoor')" id="parkTypeOutdoor" class="bg-darkgrey-700 text-slate-300 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm">APU Outdoor 🌳 (Custom)</button>
+                                    <button type="button" onclick="setParkingType('Outdoor')" id="parkTypeOutdoor" class="bg-darkgrey-700 text-slate-300 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm">APU Outdoor 🌳 (Zone B)</button>
                                     <button type="button" onclick="setParkingType('General')" id="parkTypeGeneral" class="bg-darkgrey-700 text-slate-300 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm">General 🚗 (Custom)</button>
                                 </div>
                             </div>
 
+                            <div id="parkingOutdoorBox" class="space-y-2 hidden">
+                                <label class="block text-[11px] text-slate-400 uppercase font-semibold">How long did you park?</label>
+                                <div class="flex gap-1.5">
+                                    <button type="button" onclick="setOutdoorHours(1)" id="outHr1" class="flex-1 bg-darkgrey-700 text-slate-300 py-2.5 rounded-lg font-bold text-xs cursor-pointer">1 hr</button>
+                                    <button type="button" onclick="setOutdoorHours(2)" id="outHr2" class="flex-1 bg-darkgrey-700 text-slate-300 py-2.5 rounded-lg font-bold text-xs cursor-pointer">2 hrs</button>
+                                    <button type="button" onclick="setOutdoorHours(3)" id="outHr3" class="flex-1 bg-darkgrey-700 text-slate-300 py-2.5 rounded-lg font-bold text-xs cursor-pointer">3 hrs</button>
+                                    <button type="button" onclick="setOutdoorHours(4)" id="outHr4" class="flex-1 bg-darkgrey-700 text-slate-300 py-2.5 rounded-lg font-bold text-xs cursor-pointer">4+ hrs</button>
+                                </div>
+                                <div class="bg-darkgrey-900 p-3 rounded-xl flex justify-between items-center text-xs border border-darkgrey-600">
+                                    <span id="parkingOutdoorInfo" class="text-slate-400">Pick how long you parked</span>
+                                    <span id="parkingOutdoorFee" class="text-base font-bold text-orange-500">RM 0.00</span>
+                                </div>
+                                <p class="text-[10px] text-slate-500">Zone B: RM1.82 first hour, RM1.06 each extra hour, max RM5.00 per day. Leaving and re-entering starts the rate again, so record each entry separately.</p>
+                            </div>
+
                             <div id="parkingGeneralBox" class="space-y-2 hidden">
-                                <label id="parkingCostLabel" class="block text-[11px] text-slate-400 uppercase font-semibold">Enter Parking Cost (RM)</label>
+                                <label class="block text-[11px] text-slate-400 uppercase font-semibold">Enter Parking Cost (RM)</label>
                                 <input type="number" step="0.10" id="parkingGeneralAmount" placeholder="e.g. 4.00" class="w-full bg-darkgrey-900 border border-darkgrey-600 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
                             </div>
 
@@ -629,7 +644,8 @@
         let currentNavTab = 'expenses';
         let viewingArchiveMonth = appData.currentMonth;
         let selectedCategory = 'Food';
-        let parkingType = 'Indoor'; // 'Indoor' = APU students, fixed fee | 'Outdoor' = APU students, custom cost | 'General' = non-APU, custom cost
+        let parkingType = 'Indoor'; // 'Indoor' = APU students, fixed fee | 'Outdoor' = APU Zone B hourly rate | 'General' = non-APU, custom cost
+        const OUTDOOR_FIRST_HOUR = 1.82, OUTDOOR_NEXT_HOUR = 1.06, OUTDOOR_DAILY_MAX = 5.00;
         const CAMPUS_PARKING_FEE = 5.60;
         let pieChartInstance = null;
 
@@ -1092,6 +1108,24 @@
             }
         }
 
+        // APU Zone B: RM1.82 first hour, RM1.06 each subsequent hour (or part), max RM5.00/day. Math in sen to avoid float drift.
+        function outdoorFee(hours) {
+            if (!(hours > 0)) return null;
+            const h = Math.ceil(hours - 1e-9);
+            const sen = Math.min(Math.round(OUTDOOR_DAILY_MAX * 100), Math.round(OUTDOOR_FIRST_HOUR * 100) + Math.round(OUTDOOR_NEXT_HOUR * 100) * (h - 1));
+            return { hours: h, fee: sen / 100, capped: sen >= Math.round(OUTDOOR_DAILY_MAX * 100) };
+        }
+        let outdoorHours = 0;
+        function setOutdoorHours(n) { outdoorHours = n; updateOutdoorCalc(); }
+        function updateOutdoorCalc() {
+            const cur = appData.profile.currency || 'RM';
+            const r = outdoorFee(outdoorHours);
+            const on = "flex-1 bg-orange-500 text-darkgrey-900 py-2.5 rounded-lg font-bold text-xs cursor-pointer";
+            const off = "flex-1 bg-darkgrey-700 text-slate-300 py-2.5 rounded-lg font-bold text-xs cursor-pointer";
+            [1, 2, 3, 4].forEach(n => { document.getElementById('outHr' + n).className = outdoorHours === n ? on : off; });
+            document.getElementById('parkingOutdoorFee').textContent = cur + ' ' + (r ? r.fee.toFixed(2) : '0.00');
+            document.getElementById('parkingOutdoorInfo').textContent = r ? (r.capped ? 'Daily maximum' : r.hours + (r.hours === 1 ? ' hour' : ' hours')) : 'Pick how long you parked';
+        }
         function setParkingType(type) {
             // 'Campus' was the old saved value for the APU fixed-fee mode
             parkingType = type === 'Outdoor' ? 'Outdoor' : type === 'General' ? 'General' : 'Indoor';
@@ -1099,10 +1133,10 @@
             const on = "bg-orange-500 text-darkgrey-900 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm";
             const off = "bg-darkgrey-700 text-slate-300 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer shadow-sm";
             ['Indoor', 'Outdoor', 'General'].forEach(m => { document.getElementById('parkType' + m).className = parkingType === m ? on : off; });
-            const fixed = parkingType === 'Indoor';
-            document.getElementById('parkingGeneralBox').classList.toggle('hidden', fixed);
-            document.getElementById('parkingCampusDisplayBox').classList.toggle('hidden', !fixed);
-            document.getElementById('parkingCostLabel').textContent = parkingType === 'Outdoor' ? 'Enter APU Outdoor Parking Cost (RM)' : 'Enter Parking Cost (RM)';
+            document.getElementById('parkingCampusDisplayBox').classList.toggle('hidden', parkingType !== 'Indoor');
+            document.getElementById('parkingOutdoorBox').classList.toggle('hidden', parkingType !== 'Outdoor');
+            document.getElementById('parkingGeneralBox').classList.toggle('hidden', parkingType !== 'General');
+            updateOutdoorCalc();
         }
 
         function renderQuickOptions() {
@@ -1220,13 +1254,21 @@
                 let totalFee = CAMPUS_PARKING_FEE;
                 let desc = `APU Indoor Parking 🏢 (Fixed ${cur}${CAMPUS_PARKING_FEE.toFixed(2)})`;
 
-                if (parkingType !== 'Indoor') {
+                if (parkingType === 'Outdoor') {
+                    const r = outdoorFee(outdoorHours);
+                    if (!r) {
+                        toast('Pick how long you parked.');
+                        return;
+                    }
+                    totalFee = r.fee;
+                    desc = `APU Outdoor Parking 🌳 (${r.hours} hr)`;
+                } else if (parkingType === 'General') {
                     totalFee = parseFloat(document.getElementById('parkingGeneralAmount').value);
                     if (isNaN(totalFee) || totalFee <= 0) {
                         toast(`Please enter a valid parking cost in ${cur}.`);
                         return;
                     }
-                    desc = parkingType === 'Outdoor' ? "APU Outdoor Parking 🌳" : "General Parking 🚗";
+                    desc = "General Parking 🚗";
                 }
 
                 appData.transactions.unshift({
@@ -1239,6 +1281,7 @@
 
                 if (parkingType !== 'Indoor') {
                     document.getElementById('parkingGeneralAmount').value = '';
+                    outdoorHours = 0; updateOutdoorCalc();
                 }
             } else {
                 const nameInput = document.getElementById('expenseName');
@@ -1731,7 +1774,7 @@
     const APP_VERSION = '1.2.0';
     const WHATS_NEW = {
         '1.2.0': [
-            ['🅿️', '<b class="text-white">Three parking modes.</b> APU Indoor (fixed RM5.60) and APU Outdoor (your own cost) for APU students, plus General Parking for everyone else.'],
+            ['🅿️', '<b class="text-white">Three parking modes.</b> APU Indoor (fixed RM5.60) and APU Outdoor (Zone B hourly rate, max RM5.00) for APU students, plus General Parking for everyone else.'],
             ['💰', '<b class="text-white">Tidier Add money window.</b> Only your 4 latest top-ups show now. Tap "Show more" to see the rest.'],
             ['✨', '<b class="text-white">This popup.</b> You will see what changed after each update, only once.']
         ]

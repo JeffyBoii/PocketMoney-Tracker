@@ -15,7 +15,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - The app now checks for updates each time it opens and reloads itself once when a new version is ready, so installed phones pick up new releases faster. Old offline caches are also cleaned up automatically.
 
 ### Changed
-- Parking now has **three modes**: **APU Indoor** (fixed RM5.60) and **APU Outdoor** (enter your own cost) for APU students, and **General Parking** (enter your own cost) for everyone else. PocketMoney remembers the mode you used last.
+- Parking now has **three modes**: **APU Indoor** (fixed RM5.60) and **APU Outdoor** for APU students, and **General Parking** (enter your own cost) for everyone else. PocketMoney remembers the mode you used last.
+- **APU Outdoor** works out the fee for you from how long you parked, using the Zone B rate: RM1.82 for the first hour, RM1.06 for each extra hour, and a maximum of RM5.00 per day. Just tap 1, 2, 3 or 4+ hours, with no typing needed.
 - Indoor parking entries from older versions are renamed automatically to **APU Indoor Parking**.
 - The **Add money** window now shows only your 4 latest top-ups, so it is less cluttered on phones. Tap **Show more** to see the rest and **Show less** to collapse the list again.
 - The "Added this month" heading now shows how many top-ups you have, for example "Added this month (10)".
