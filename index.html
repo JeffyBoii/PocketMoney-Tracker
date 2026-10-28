@@ -575,6 +575,16 @@
             </div>
         </div>
     </div>
+    <div id="whatsNewModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4 hidden">
+        <div class="bg-darkgrey-800 border border-darkgrey-600 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
+            <div>
+                <p class="text-[11px] font-bold text-orange-400 uppercase tracking-wider">What's new</p>
+                <h3 class="text-lg font-extrabold text-white" id="whatsNewTitle"></h3>
+            </div>
+            <ul id="whatsNewList" class="space-y-2.5 text-xs text-slate-300"></ul>
+            <button type="button" onclick="closeWhatsNew()" class="w-full bg-orange-500 hover:bg-orange-600 text-darkgrey-900 font-extrabold py-2.5 rounded-xl text-xs cursor-pointer">Got it</button>
+        </div>
+    </div>
     <!-- JavaScript Application Logic -->
     <script>
         const store = (() => {
@@ -1717,7 +1727,35 @@
         window.addEventListener('online', () => pull());
         setInterval(() => { if (document.visibilityState === 'visible') pull(); }, 30000);
     })();
-    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+    // ---- What's new popup: shown once per version ----
+    const APP_VERSION = '1.2.0';
+    const WHATS_NEW = {
+        '1.2.0': [
+            ['🅿️', '<b class="text-white">Three parking modes.</b> APU Indoor (fixed RM5.60) and APU Outdoor (your own cost) for APU students, plus General Parking for everyone else.'],
+            ['💰', '<b class="text-white">Tidier Add money window.</b> Only your 4 latest top-ups show now. Tap "Show more" to see the rest.'],
+            ['✨', '<b class="text-white">This popup.</b> You will see what changed after each update, only once.']
+        ]
+    };
+    function closeWhatsNew() {
+        document.getElementById('whatsNewModal').classList.add('hidden');
+        try { store.setItem('pm_seenver', APP_VERSION); } catch (e) {}
+    }
+    (function showWhatsNew() {
+        let seen = null; try { seen = store.getItem('pm_seenver'); } catch (e) {}
+        if (seen === APP_VERSION) return;
+        // Brand-new user (no saved data yet): nothing has "changed" for them, just remember the version.
+        if (!seen && !_saved) { try { store.setItem('pm_seenver', APP_VERSION); } catch (e) {} return; }
+        const items = WHATS_NEW[APP_VERSION]; if (!items) return;
+        document.getElementById('whatsNewTitle').textContent = 'PocketMoney ' + APP_VERSION;
+        document.getElementById('whatsNewList').innerHTML = items.map(i => '<li class="flex gap-2.5"><span class="text-base leading-none">' + i[0] + '</span><span>' + i[1] + '</span></li>').join('');
+        setTimeout(() => document.getElementById('whatsNewModal').classList.remove('hidden'), 600);
+    })();
+    // Pick up new versions faster: check for an updated service worker and reload once when it takes over.
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+        const hadController = !!navigator.serviceWorker.controller; let reloaded = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController && !reloaded) { reloaded = true; location.reload(); } });
+        navigator.serviceWorker.register('sw.js').then(r => { try { r.update(); } catch (e) {} }).catch(() => {});
+    }
     </script>
 
 </body>

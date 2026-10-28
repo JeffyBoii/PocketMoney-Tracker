@@ -10,6 +10,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [1.2.0] - 2026-10-28
 
+### Added
+- A **What's new** popup that lists the latest changes after an update. It shows once per version and is skipped for brand-new users.
+- The app now checks for updates each time it opens and reloads itself once when a new version is ready, so installed phones pick up new releases faster. Old offline caches are also cleaned up automatically.
+
 ### Changed
 - Parking now has **three modes**: **APU Indoor** (fixed RM5.60) and **APU Outdoor** (enter your own cost) for APU students, and **General Parking** (enter your own cost) for everyone else. PocketMoney remembers the mode you used last.
 - Indoor parking entries from older versions are renamed automatically to **APU Indoor Parking**.
