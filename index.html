@@ -71,6 +71,49 @@
 #contentArea,#mainContainer{min-width:0;max-width:100%}
 #catScroller::-webkit-scrollbar{display:none}
 </style>
+<style id="calcStyles">
+.calc-wrap{width:100%;max-width:23rem;margin:0 auto}
+.calc-card{border-radius:1.25rem;padding:1rem;background:rgb(32 32 37/.8);border:1px solid #2c2c35}
+.light .calc-card{background:#fff;border-color:#e2e8f0}
+.calc-screen{border-radius:1rem;padding:.85rem 1rem;margin-bottom:.9rem;background:#0d0d0f;min-height:5.75rem;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;gap:.2rem;overflow:hidden}
+.light .calc-screen{background:#f1f5f9}
+.calc-expr{max-width:100%;overflow-x:auto;white-space:nowrap;font-size:.85rem;color:#94a3b8;min-height:1.3rem;scrollbar-width:none}
+.calc-expr::-webkit-scrollbar{display:none}
+.light .calc-expr{color:#64748b}
+.calc-out{max-width:100%;font-weight:800;color:#fff;line-height:1.15;word-break:break-all;text-align:right}
+.light .calc-out{color:#0f172a}
+.calc-pad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem}
+.calc-key{height:3.4rem;border-radius:.9rem;font-size:1.15rem;font-weight:700;background:#2c2c35;color:#f1f5f9;border:0;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:transform .08s,filter .15s}
+.calc-key:hover{filter:brightness(1.25)}
+.calc-key:active{transform:scale(.95)}
+.light .calc-key{background:#e2e8f0;color:#0f172a}
+.calc-key.fn{background:#3a3a46;color:#e2e8f0}
+.light .calc-key.fn{background:#cbd5e1;color:#0f172a}
+.calc-key.op{background:rgb(var(--ac)/.2);color:rgb(var(--ac-l));font-size:1.35rem}
+.calc-key.eq{background:rgb(var(--ac));color:#0d0d0f;font-size:1.35rem}
+.calc-recent-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;margin-top:.9rem;padding:.6rem;border-radius:.8rem;border:1px solid #2c2c35;background:transparent;color:#94a3b8;font-size:.8rem;font-weight:700;cursor:pointer}
+.calc-recent-btn:hover{background:rgb(255 255 255/.05)}
+.light .calc-recent-btn{border-color:#e2e8f0;color:#64748b}
+.light .calc-recent-btn:hover{background:rgb(15 23 42/.05)}
+.calc-badge{min-width:1.25rem;padding:0 .35rem;border-radius:999px;background:rgb(var(--ac-l));color:#fff;font-size:.65rem;line-height:1.25rem;text-align:center}
+#calcHistModal{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center;padding:1rem;background:rgb(0 0 0/.55)}
+#calcHistModal.hidden{display:none}
+@media(min-width:640px){#calcHistModal{align-items:center}}
+.calc-pop{width:100%;max-width:23rem;border-radius:1.25rem;padding:1rem;background:#202025;border:1px solid #2c2c35;box-shadow:0 20px 50px rgb(0 0 0/.5)}
+.light .calc-pop{background:#fff;border-color:#e2e8f0}
+.calc-pop-list{max-height:11.4rem;overflow-y:auto;overscroll-behavior:contain;margin-top:.5rem}
+.calc-pop-title{font-weight:800;font-size:.95rem;color:#fff}
+.light .calc-pop-title{color:#0f172a}
+.calc-hist-head{display:flex;justify-content:space-between;align-items:center;margin:0 .25rem .2rem}
+.calc-hist-clear{background:none;border:0;cursor:pointer;font-size:11px;font-weight:700;color:rgb(var(--ac-l))}
+.calc-hist-item{display:flex;justify-content:space-between;gap:.75rem;width:100%;padding:.5rem .75rem;border-radius:.7rem;font-size:.8rem;cursor:pointer;background:transparent;border:0;color:#94a3b8;text-align:left}
+.calc-hist-item:hover{background:rgb(255 255 255/.06)}
+.light .calc-hist-item{color:#64748b}
+.light .calc-hist-item:hover{background:rgb(15 23 42/.06)}
+.calc-hist-item span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calc-hist-item b{color:#fff;white-space:nowrap}
+.light .calc-hist-item b{color:#0f172a}
+</style>
 </head>
 <body id="appBody" class="overflow-x-hidden bg-darkgrey-900 text-slate-100 font-sans min-h-screen p-2 sm:p-6 flex flex-col items-center transition-colors duration-300 bg-cover bg-center bg-no-repeat bg-fixed" style="background-image: none;">
 
@@ -121,6 +164,10 @@
             <button onclick="switchTab('summary')" id="navSummaryBtn" class="py-4 text-slate-400 hover:text-slate-200 font-bold text-sm sm:text-base whitespace-nowrap shrink-0 border-b-2 border-transparent flex items-center space-x-2 transition cursor-pointer">
                 <i class="fa-solid fa-chart-pie"></i>
                 <span>Monthly History & Summary</span>
+            </button>
+            <button onclick="switchTab('calculator')" id="navCalcBtn" class="py-4 text-slate-400 hover:text-slate-200 font-bold text-sm sm:text-base whitespace-nowrap shrink-0 border-b-2 border-transparent flex items-center space-x-2 transition cursor-pointer">
+                <i class="fa-solid fa-calculator"></i>
+                <span>Calculator</span>
             </button>
             <button onclick="switchTab('settings')" id="navSettingsTabBtn" class="py-4 text-slate-400 hover:text-slate-200 font-bold text-sm sm:text-base whitespace-nowrap shrink-0 border-b-2 border-transparent flex items-center space-x-2 transition cursor-pointer">
                 <i class="fa-solid fa-gear"></i>
@@ -297,6 +344,42 @@
                         <div id="archiveTransactionList" class="space-y-2.5 flex-1 overflow-y-auto pr-1">
                             <div class="text-center py-12 text-slate-400 text-xs">No records found for this period.</div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: CALCULATOR (state lives in memory only: it stays while you switch tabs and resets when the app is closed) -->
+            <div id="view-calculator" class="hidden">
+                <div class="calc-wrap">
+                    <div class="calc-card">
+                        <div class="calc-screen" aria-live="polite">
+                            <div id="calcExpr" class="calc-expr"></div>
+                            <div id="calcOut" class="calc-out">0</div>
+                        </div>
+                        <div class="calc-pad">
+                            <button type="button" class="calc-key fn" onclick="calcPress('AC')" aria-label="Clear all">AC</button>
+                            <button type="button" class="calc-key fn" onclick="calcPress('±')" aria-label="Plus or minus">±</button>
+                            <button type="button" class="calc-key fn" onclick="calcPress('%')" aria-label="Percent">%</button>
+                            <button type="button" class="calc-key op" onclick="calcPress('÷')" aria-label="Divide">÷</button>
+                            <button type="button" class="calc-key" onclick="calcPress('7')">7</button>
+                            <button type="button" class="calc-key" onclick="calcPress('8')">8</button>
+                            <button type="button" class="calc-key" onclick="calcPress('9')">9</button>
+                            <button type="button" class="calc-key op" onclick="calcPress('×')" aria-label="Multiply">×</button>
+                            <button type="button" class="calc-key" onclick="calcPress('4')">4</button>
+                            <button type="button" class="calc-key" onclick="calcPress('5')">5</button>
+                            <button type="button" class="calc-key" onclick="calcPress('6')">6</button>
+                            <button type="button" class="calc-key op" onclick="calcPress('−')" aria-label="Subtract">−</button>
+                            <button type="button" class="calc-key" onclick="calcPress('1')">1</button>
+                            <button type="button" class="calc-key" onclick="calcPress('2')">2</button>
+                            <button type="button" class="calc-key" onclick="calcPress('3')">3</button>
+                            <button type="button" class="calc-key op" onclick="calcPress('+')" aria-label="Add">+</button>
+                            <button type="button" class="calc-key fn" onclick="calcPress('back')" aria-label="Delete last"><i class="fa-solid fa-delete-left"></i></button>
+                            <button type="button" class="calc-key" onclick="calcPress('0')">0</button>
+                            <button type="button" class="calc-key" onclick="calcPress('.')" aria-label="Decimal point">.</button>
+                            <button type="button" class="calc-key eq" onclick="calcPress('=')" aria-label="Equals">=</button>
+                        </div>
+                        <button type="button" class="calc-recent-btn" onclick="calcOpenHistory()" aria-haspopup="dialog"><i class="fa-solid fa-clock-rotate-left"></i> Recent results <span id="calcHistCount" class="calc-badge hidden">0</span></button>
+                        <p class="text-[11px] text-slate-400 mt-2 px-1">Your calculation stays here when you switch tabs. It clears when you close the app.</p>
                     </div>
                 </div>
             </div>
@@ -590,6 +673,18 @@
             </div>
         </div>
     </div>
+    <div id="calcHistModal" class="hidden" role="dialog" aria-modal="true" aria-label="Recent results" onclick="if(event.target===this)calcCloseHistory()">
+        <div class="calc-pop">
+            <div class="calc-hist-head">
+                <span class="calc-pop-title">Recent results</span>
+                <span class="flex items-center gap-3">
+                    <button type="button" id="calcHistClear" class="calc-hist-clear hidden" onclick="calcClearHistory()">Clear</button>
+                    <button type="button" class="calc-hist-clear" onclick="calcCloseHistory()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+                </span>
+            </div>
+            <div id="calcHist" class="calc-pop-list"></div>
+        </div>
+    </div>
     <div id="whatsNewModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4 hidden">
         <div class="bg-darkgrey-800 border border-darkgrey-600 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
             <div>
@@ -766,42 +861,27 @@
 
         function switchTab(tabName) {
             currentNavTab = tabName;
-            const expView = document.getElementById('view-expenses');
-            const sumView = document.getElementById('view-summary');
-            const setView = document.getElementById('view-settings');
-            const navExpBtn = document.getElementById('navExpensesBtn');
-            const navSumBtn = document.getElementById('navSummaryBtn');
-            const navSetBtn = document.getElementById('navSettingsTabBtn');
+            const views = { expenses: 'view-expenses', summary: 'view-summary', calculator: 'view-calculator', settings: 'view-settings' };
+            const btns = { expenses: 'navExpensesBtn', summary: 'navSummaryBtn', calculator: 'navCalcBtn', settings: 'navSettingsTabBtn' };
 
             const accentColorClass = 'text-orange-400';
             const activeClass = `py-4 ${accentColorClass} font-bold text-sm sm:text-base whitespace-nowrap shrink-0 border-b-2 border-orange-500 flex items-center space-x-2 transition cursor-pointer`;
             const inactiveClass = "py-4 text-slate-400 hover:text-slate-200 font-bold text-sm sm:text-base whitespace-nowrap shrink-0 border-b-2 border-transparent flex items-center space-x-2 transition cursor-pointer";
 
-            expView.classList.add('hidden');
-            sumView.classList.add('hidden');
-            setView.classList.add('hidden');
+            Object.keys(views).forEach(name => {
+                document.getElementById(views[name]).classList.toggle('hidden', name !== tabName);
+                document.getElementById(btns[name]).className = name === tabName ? activeClass : inactiveClass;
+            });
 
-            if (tabName === 'expenses') {
-                expView.classList.remove('hidden');
-                navExpBtn.className = activeClass;
-                navSumBtn.className = inactiveClass;
-                navSetBtn.className = inactiveClass;
-            } else if (tabName === 'summary') {
-                sumView.classList.remove('hidden');
-                navSumBtn.className = activeClass;
-                navExpBtn.className = inactiveClass;
-                navSetBtn.className = inactiveClass;
+            if (tabName === 'summary') {
                 viewingArchiveMonth = appData.currentMonth;
                 populateArchiveDropdown();
                 renderSummaryAndChart();
             } else if (tabName === 'settings') {
-                setView.classList.remove('hidden');
-                navSetBtn.className = activeClass;
-                navExpBtn.className = inactiveClass;
-                navSumBtn.className = inactiveClass;
                 loadSettingsFormValues();
                 switchSettingsSub('profile');
             }
+            // The calculator keeps its numbers: its view is only hidden, never rebuilt.
         }
 
         function getActiveTextAccentClass(accent) {
@@ -1616,7 +1696,7 @@
         document.getElementById('expenseName').addEventListener('change', e => { const m = _suggestMap[e.target.value.trim().toLowerCase()], amt = document.getElementById('expenseAmount'); if (m && !amt.value) { amt.value = m.amount.toFixed(2); amt.focus(); amt.select(); } });
         try { const lc = store.getItem('pm_lastcat'); ensureCategories(); if (lc && lc !== selectedCategory && activeCats().some(c => c.id === lc)) selectCategory(lc); } catch (e) {}
         ['expenseName','expenseAmount','parkingGeneralAmount'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') addExpense(); }));
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSetBudgetModal(); closeAddMoneyModal(); closeCatModal(); closeEdit(); resolveConfirm(false); } });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSetBudgetModal(); closeAddMoneyModal(); closeCatModal(); closeEdit(); calcCloseHistory(); resolveConfirm(false); } });
         ['setBudgetModal', 'addMoneyModal', 'catModal', 'editModal', 'confirmModal'].forEach(id => { const m = document.getElementById(id); m.addEventListener('click', e => { if (e.target === m) { id === 'confirmModal' ? resolveConfirm(false) : m.classList.add('hidden'); } }); });
         [['modalBudgetInput', saveNewBudget], ['addMoneyAmount', saveAddMoney], ['addMoneyNote', saveAddMoney], ['editName', saveEdit], ['editAmount', saveEdit]].forEach(([id, fn]) => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') fn(); }));
         window.addEventListener('resize', renderHeader);
@@ -1628,6 +1708,262 @@
             applyWallpaper(appData.profile.wallpaper);
         }
         updateUI();
+        // ==== CALC START ====
+        // Calculator: lives in memory only. It stays while you switch tabs and resets when the app is closed (never saved or synced).
+        const calc = { expr: '', result: null, justEvaluated: false, error: '', preview: null, history: [] };
+        const CALC_MAX_HISTORY = 30;
+
+        function calcIsOp(ch) { return ch === '+' || ch === '\u2212' || ch === '\u00d7' || ch === '\u00f7'; }
+        function calcClean(v) { return parseFloat(Number(v).toPrecision(12)); }
+        // Plain number text without thousands separators, using the proper minus sign (used when continuing from a result)
+        function calcRaw(v) {
+            const s = calcClean(v).toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: 10 });
+            return s.replace('-', '\u2212');
+        }
+        function calcGroup(typed) {
+            const neg = typed.charAt(0) === '\u2212' || typed.charAt(0) === '-';
+            const body = neg ? typed.slice(1) : typed;
+            const parts = body.split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return (neg ? '\u2212' : '') + parts.join('.');
+        }
+        function calcFormat(v) { return calcGroup(calcRaw(v)); }
+
+        function calcTokenize(expr) {
+            const tokens = []; let i = 0;
+            while (i < expr.length) {
+                const ch = expr.charAt(i);
+                if ((ch >= '0' && ch <= '9') || ch === '.') {
+                    let j = i;
+                    while (j < expr.length && ((expr.charAt(j) >= '0' && expr.charAt(j) <= '9') || expr.charAt(j) === '.')) j++;
+                    const n = parseFloat(expr.slice(i, j));
+                    if (isNaN(n)) return null;
+                    tokens.push({ t: 'n', v: n }); i = j;
+                } else if (ch === '%') { tokens.push({ t: '%' }); i++; }
+                else if (calcIsOp(ch)) { tokens.push({ t: 'o', v: ch }); i++; }
+                else return null;
+            }
+            return tokens;
+        }
+
+        // Returns { value } or { error } or null (not a complete expression yet). No eval().
+        function calcEvaluate(expr) {
+            const toks = calcTokenize(expr);
+            if (!toks || !toks.length) return null;
+            let p = 0;
+            const isOp = (o) => toks[p] && toks[p].t === 'o' && o.indexOf(toks[p].v) !== -1;
+            function unary() {
+                let s = 1;
+                while (isOp('\u2212')) { s = -s; p++; }
+                if (!toks[p] || toks[p].t !== 'n') return null;
+                let v = s * toks[p].v; p++;
+                let pct = false;
+                while (toks[p] && toks[p].t === '%') { v = v / 100; pct = true; p++; }
+                return { v: v, pct: pct };
+            }
+            function term() {
+                let a = unary(); if (!a) return null;
+                while (isOp('\u00d7\u00f7')) {
+                    const op = toks[p].v; p++;
+                    const b = unary(); if (!b) return null;
+                    if (op === '\u00d7') a = { v: a.v * b.v, pct: false };
+                    else { if (b.v === 0) throw new Error('div0'); a = { v: a.v / b.v, pct: false }; }
+                }
+                return a;
+            }
+            try {
+                const first = term(); if (!first) return null;
+                let acc = first.v;
+                while (isOp('+\u2212')) {
+                    const op = toks[p].v; p++;
+                    const b = term(); if (!b) return null;
+                    const rhs = b.pct ? acc * b.v : b.v; // 200 + 10% = 220
+                    acc = op === '+' ? acc + rhs : acc - rhs;
+                }
+                if (p !== toks.length) return null;
+                if (!isFinite(acc)) return { error: 'Number too big' };
+                return { value: calcClean(acc) };
+            } catch (e) {
+                return { error: "Can't divide by 0" };
+            }
+        }
+
+        function calcTrimTail(expr) { return expr.replace(/[+\u2212\u00d7\u00f7.]+$/, ''); }
+        function calcPlainNumber(expr) { return /^\u2212?[0-9]*\.?[0-9]*$/.test(expr); }
+
+        function calcClear() { calc.expr = ''; calc.result = null; calc.justEvaluated = false; calc.error = ''; calc.preview = null; }
+
+        function calcDigit(d) {
+            if (calc.error) calcClear();
+            if (calc.justEvaluated) { calc.expr = ''; calc.justEvaluated = false; calc.preview = null; }
+            if (calc.expr.length >= 60) return;
+            if (calc.expr.slice(-1) === '%') return;
+            const m = calc.expr.match(/[0-9.]*$/); const seg = m ? m[0] : '';
+            if (d === '.') {
+                if (seg.indexOf('.') !== -1) return;
+                calc.expr += seg === '' ? '0.' : '.';
+                return;
+            }
+            if (seg.replace('.', '').length >= 15) return;
+            if (seg === '0') { if (d === '0') return; calc.expr = calc.expr.slice(0, -1) + d; return; }
+            calc.expr += d;
+        }
+
+        function calcOperator(op) {
+            if (calc.error) calcClear();
+            if (calc.justEvaluated) { calc.expr = calcRaw(calc.result); calc.justEvaluated = false; }
+            if (calc.expr === '') {
+                if (op === '\u2212') { calc.expr = '\u2212'; return; }
+                calc.expr = (calc.result !== null ? calcRaw(calc.result) : '0') + op;
+                return;
+            }
+            const last = calc.expr.slice(-1);
+            // allow a negative number after x or / (e.g. 5 x -3)
+            if (op === '\u2212' && (last === '\u00d7' || last === '\u00f7')) { calc.expr += op; return; }
+            if (calc.expr === '\u2212') { return; }
+            // swap the operator if one was just typed
+            calc.expr = calc.expr.replace(/[+\u2212\u00d7\u00f7]+$/, '');
+            if (calc.expr === '') { calc.expr = op === '\u2212' ? '\u2212' : '0' + op; return; }
+            if (calc.expr.length >= 60) return;
+            calc.expr += op;
+        }
+
+        function calcPercent() {
+            if (calc.error) return;
+            if (calc.justEvaluated) { calc.expr = calcRaw(calc.result); calc.justEvaluated = false; }
+            if (/[0-9]$/.test(calc.expr) || calc.expr.slice(-1) === '%') { if (calc.expr.length < 60) calc.expr += '%'; }
+        }
+
+        function calcNegate() {
+            if (calc.error) return;
+            if (calc.justEvaluated) {
+                if (!calc.result) return;
+                calc.expr = calcRaw(-calc.result); calc.justEvaluated = false; return;
+            }
+            const m = calc.expr.match(/[0-9.]+$/); if (!m) return;
+            const s = calc.expr.length - m[0].length;
+            const before = calc.expr.charAt(s - 1), beforeThat = calc.expr.charAt(s - 2);
+            if (before === '\u2212' && (s - 1 === 0 || calcIsOp(beforeThat))) calc.expr = calc.expr.slice(0, s - 1) + calc.expr.slice(s);
+            else calc.expr = calc.expr.slice(0, s) + '\u2212' + calc.expr.slice(s);
+        }
+
+        function calcBackspace() {
+            if (calc.error) { calcClear(); return; }
+            if (calc.justEvaluated) return;
+            calc.expr = calc.expr.slice(0, -1);
+        }
+
+        function calcEquals() {
+            if (calc.error || calc.justEvaluated || calc.expr === '') return;
+            const trimmed = calcTrimTail(calc.expr);
+            if (calcPlainNumber(trimmed)) return; // nothing to calculate yet
+            const res = calcEvaluate(trimmed);
+            if (!res) return;
+            if (res.error) { calc.error = res.error; return; }
+            calc.history.unshift({ expr: trimmed, result: res.value });
+            if (calc.history.length > CALC_MAX_HISTORY) calc.history.length = CALC_MAX_HISTORY;
+            calc.result = res.value; calc.expr = trimmed; calc.justEvaluated = true;
+        }
+
+        function calcUseHistory(i) {
+            const h = calc.history[i]; if (!h) return;
+            calc.error = ''; calc.justEvaluated = false;
+            calc.expr = calcRaw(h.result); calc.result = h.result;
+            calcCloseHistory();
+            calcRender();
+        }
+        function calcOpenHistory() { document.getElementById('calcHistModal').classList.remove('hidden'); const l = document.getElementById('calcHist'); if (l) l.scrollTop = 0; }
+        function calcCloseHistory() { document.getElementById('calcHistModal').classList.add('hidden'); }
+        function calcClearHistory() { calc.history = []; calcRender(); }
+
+        function calcPress(k) {
+            if (k === 'AC') calcClear();
+            else if (k === 'back') calcBackspace();
+            else if (k === '\u00b1') calcNegate();
+            else if (k === '%') calcPercent();
+            else if (k === '=') calcEquals();
+            else if (calcIsOp(k)) calcOperator(k);
+            else calcDigit(k);
+            calcRender();
+        }
+
+        function calcPretty(expr) {
+            const parts = expr.match(/[0-9.]+|[+\u2212\u00d7\u00f7%]/g) || [];
+            let out = '', prev = '';
+            parts.forEach((p) => {
+                if (/^[0-9.]/.test(p)) out += calcGroup(p);
+                else if (p === '%') out += '%';
+                else if (prev === '' || calcIsOp(prev)) out += p; // sign in front of a number
+                else out += ' ' + p + ' ';
+                prev = p;
+            });
+            return out;
+        }
+
+        function calcRender() {
+            const exprEl = document.getElementById('calcExpr'), outEl = document.getElementById('calcOut');
+            if (!exprEl || !outEl) return;
+            let main = '0', top = '';
+            if (calc.error) { main = calc.error; top = calcPretty(calc.expr); }
+            else if (calc.justEvaluated) { main = calcFormat(calc.result); top = calcPretty(calc.expr) + ' ='; }
+            else {
+                top = calcPretty(calc.expr);
+                if (calc.expr === '' ) main = '0';
+                else if (calcPlainNumber(calc.expr)) main = calc.expr === '\u2212' ? '0' : calcGroup(calc.expr);
+                else {
+                    const res = calcEvaluate(calcTrimTail(calc.expr));
+                    if (res && res.value !== undefined) calc.preview = res.value;
+                    main = calc.preview !== null ? calcFormat(calc.preview) : '0';
+                }
+            }
+            if (calc.expr === '' && !calc.justEvaluated && !calc.error) calc.preview = null;
+            outEl.textContent = main;
+            const n = main.length;
+            outEl.style.fontSize = calc.error ? '1.4rem' : (n <= 9 ? '2.6rem' : (n <= 13 ? '2rem' : '1.5rem'));
+            exprEl.textContent = top;
+            exprEl.scrollLeft = exprEl.scrollWidth;
+            // history
+            const box = document.getElementById('calcHist'), clr = document.getElementById('calcHistClear'), cnt = document.getElementById('calcHistCount');
+            box.innerHTML = '';
+            cnt.textContent = calc.history.length; cnt.classList.toggle('hidden', !calc.history.length);
+            if (!calc.history.length) {
+                const p = document.createElement('p'); p.className = 'text-xs text-slate-400 px-1'; p.textContent = 'Nothing yet. Your last results will show here.';
+                box.appendChild(p); clr.classList.add('hidden');
+            } else {
+                clr.classList.remove('hidden');
+                calc.history.forEach((h, i) => {
+                    const b = document.createElement('button'); b.type = 'button'; b.className = 'calc-hist-item';
+                    b.onclick = () => calcUseHistory(i);
+                    const a = document.createElement('span'); a.textContent = calcPretty(h.expr);
+                    const r = document.createElement('b'); r.textContent = '= ' + calcFormat(h.result);
+                    b.appendChild(a); b.appendChild(r); box.appendChild(b);
+                });
+            }
+        }
+
+        // Keyboard support (only while the Calculator tab is open and you are not typing in a field or a popup)
+        document.addEventListener('keydown', function (e) {
+            if (currentNavTab !== 'calculator') return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            const t = e.target;
+            if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+            if (document.querySelector('[id$="Modal"]:not(.hidden)')) return;
+            const k = e.key; let handled = true;
+            if (/^[0-9]$/.test(k)) calcPress(k);
+            else if (k === '.' || k === ',') calcPress('.');
+            else if (k === '+') calcPress('+');
+            else if (k === '-') calcPress('\u2212');
+            else if (k === '*' || k === 'x' || k === 'X') calcPress('\u00d7');
+            else if (k === '/') calcPress('\u00f7');
+            else if (k === '%') calcPress('%');
+            else if (k === 'Enter' || k === '=') calcPress('=');
+            else if (k === 'Backspace') calcPress('back');
+            else if (k === 'Escape' || k === 'Delete') calcPress('AC');
+            else handled = false;
+            if (handled) e.preventDefault();
+        });
+        calcRender();
+        // ==== CALC END ====
     </script>
 
     <script>
@@ -1771,8 +2107,15 @@
         setInterval(() => { if (document.visibilityState === 'visible') pull(); }, 30000);
     })();
     // ---- What's new popup: shown once per version ----
-    const APP_VERSION = '1.2.0';
+    const APP_VERSION = '1.3.0';
     const WHATS_NEW = {
+        '1.3.0': [
+            ['🧮', '<b class="text-white">New Calculator tab.</b> Add, subtract, multiply and divide, with ± and delete for quick fixes.'],
+            ['％', '<b class="text-white">Smart percent.</b> 200 + 10% gives 220, and 50 × 10% gives 5, just like a phone calculator.'],
+            ['🕘', '<b class="text-white">Recent results pop-out.</b> Tap "Recent results" to see your last 5 answers, then scroll for older ones. Tap any result to use it again.'],
+            ['⌨️', '<b class="text-white">Keyboard friendly.</b> On a computer, type numbers and operators, press Enter for equals and Esc to close the pop-out.'],
+            ['🔒', '<b class="text-white">Private and persistent.</b> Your numbers stay when you switch tabs. Nothing is saved or synced, and it all clears when you close the app.']
+        ],
         '1.2.0': [
             ['🅿️', '<b class="text-white">Three parking modes.</b> APU Indoor (fixed RM5.60) and APU Outdoor (Zone B hourly rate, max RM5.00) for APU students, plus General Parking for everyone else.'],
             ['💰', '<b class="text-white">Tidier Add money window.</b> Only your 4 latest top-ups show now. Tap "Show more" to see the rest.'],

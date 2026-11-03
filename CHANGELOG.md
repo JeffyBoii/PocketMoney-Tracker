@@ -8,6 +8,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Added
 - Nothing yet. Ideas and requests are welcome in the [issues](../../issues).
 
+## [1.3.0] - 2026-11-03
+
+### Added
+- A new **Calculator** tab for quick sums, with + − × ÷, **%**, **±** and delete.
+- **Smart percent**: `200 + 10%` gives 220 and `50 × 10%` gives 5, the same way a phone calculator works.
+- A **Recent results** pop-out. It shows your last 5 answers and scrolls for older ones (up to 30). Tap a result to use it again, or tap **Clear** to empty the list. A small badge on the button shows how many results you have.
+- **Keyboard support** on computers: type numbers and operators, press Enter for equals, Backspace to delete and Esc to close the pop-out.
+- Dividing by zero shows a clear message instead of a broken result.
+
+### Changed
+- The calculator keeps what you typed when you switch between tabs. It is never saved or synced, so it clears when you close the app.
+
 ## [1.2.0] - 2026-10-28
 
 ### Added
@@ -56,7 +68,8 @@ First public release.
 - Setup files for running your own copy: `config.example.js` and `supabase-setup.sql`.
 - [Privacy policy](PRIVACY.md) and [MIT license](LICENSE).
 
-[Unreleased]: ../../compare/v1.2.0...HEAD
+[Unreleased]: ../../compare/v1.3.0...HEAD
+[1.3.0]: ../../compare/v1.2.0...v1.3.0
 [1.2.0]: ../../compare/v1.1.0...v1.2.0
 [1.1.0]: ../../releases/tag/v1.1.0
 [1.0.0]: ../../releases/tag/v1.0.0
